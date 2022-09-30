@@ -1,6 +1,48 @@
-const { PermissionsBitField } = require('discord.js');
+const { channel } = require('diagnostics_channel');
+const { EmbedBuilder, ButtonStyle, ActionRowBuilder, ButtonBuilder, PermissionsBitField } = require('discord.js');
 const databases = { config: require("../../data/config.json") }
 const { writeFile } = require('fs');
+
+
+const buttons = [
+    new ActionRowBuilder()
+    .addComponents(
+        new ButtonBuilder()
+            .setCustomId('ajout-button')
+            .setLabel('Ajouter un anime')
+            .setStyle(ButtonStyle.Success),
+
+        new ButtonBuilder()
+            .setCustomId('suppr-button')
+            .setLabel('Supprimer un anime')
+            .setStyle(ButtonStyle.Danger),
+
+        new ButtonBuilder()
+            .setCustomId('modif-button')
+            .setLabel('Mettre à jour la saison')
+            .setStyle(ButtonStyle.Secondary)
+        
+            )
+
+]
+const embed_animes = new EmbedBuilder()
+    .setTitle(`Anime - `)
+    .addFields(
+        { name: `Lundi`, value: '-', inline: false },
+        { name: `Mardi`, value: '-', inline: false },
+        { name: `Mercredi`, value: '-', inline: false },
+        { name: `Jeudi`, value: '-', inline: false },
+        { name: `Vendredi`, value: '-', inline: false },
+        { name: `Samedi`, value: '-', inline: false },
+        { name: `Dimanche`, value: '-', inline: false },
+    );
+
+const embed_series = new EmbedBuilder()
+.setTitle(`Series`)
+.addFields(
+    { name: `En cours`, value: '-', inline: false },
+);
+
 
 module.exports = {
     name: 'config',
@@ -20,6 +62,10 @@ module.exports = {
                 {
                     name: 'report',
                     value: 'report'
+                },
+                {
+                    name: 'saison',
+                    value: 'saison'
                 }
             ]
         },
@@ -36,7 +82,7 @@ module.exports = {
             required: false,
         }
     ],
-    runInteraction: (client, interaction) => {
+    runInteraction: async (client, interaction) => {
 
         const typeChoice = interaction.options.getString('type');
         const channelChoice = interaction.options.getChannel('channel');
@@ -48,7 +94,10 @@ module.exports = {
 
         if (deleteChoice) {
             if (typeChoice == 'suggest') { delete databases.config[interaction.guildId].suggest }
-            else { delete databases.config[interaction.guildId].report }
+            else if (typeChoice == 'saison') { delete databases.config[interaction.guildId].saison }
+            else { delete databases.config[interaction.guildId].report 
+            
+            }
 
             writeFile("data/config.json", JSON.stringify(databases.config), (err) => { if (err) { console.log(err) } });
             return interaction.reply({ content: `Ce channel a été délink !` })
@@ -66,6 +115,16 @@ module.exports = {
 
             writeFile("data/config.json", JSON.stringify(databases.config), (err) => { if (err) { console.log(err) } });
             return interaction.reply({ content: `Le channel ${channelChoice} a été configuré pour recevoir les reports de bugs.`, ephemeral: true });
+        }
+        else if (typeChoice == 'saison') {
+            databases.config[interaction.guildId].saison = channelChoice.id;
+            
+            const message = await client.channels.cache.get(databases.config[interaction.guildId].saison).send({ embeds: [embed_animes, embed_series], components: buttons });
+            
+            databases.config[interaction.guildId].saison_message = message.id;
+
+            writeFile("data/config.json", JSON.stringify(databases.config), (err) => { if (err) { console.log(err) } });
+            return interaction.reply({ content: `Le channel ${channelChoice} a été configuré pour afficher les animes de la saison.`, ephemeral: true });
         }
     }
 }
