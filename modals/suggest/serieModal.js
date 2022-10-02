@@ -32,7 +32,7 @@ module.exports = {
             // .setThumbnail(client.user.displayAvatarURL())
             .setTimestamp()
             .setFooter({text: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
-            .setColor('#48008c')
+            .setColor('#6778CC')
             .addFields(
                 { name: `Type`, value: 'Série', inline: true },
             );

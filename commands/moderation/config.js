@@ -1,7 +1,8 @@
 const { channel } = require('diagnostics_channel');
 const { EmbedBuilder, ButtonStyle, ActionRowBuilder, ButtonBuilder, PermissionsBitField } = require('discord.js');
-const databases = { config: require("../../data/config.json") }
+const databases = { config: require("../../data/config.json"), saison: require("../../data/saison.json"), all_anime: require("../../data/all_anime.json"), }
 const { writeFile } = require('fs');
+const axios = require("axios");
 
 
 const buttons = [
@@ -26,7 +27,7 @@ const buttons = [
 
 ]
 const embed_animes = new EmbedBuilder()
-    .setTitle(`Anime - `)
+    .setTitle("Anime - ")
     .addFields(
         { name: `Lundi`, value: '-', inline: false },
         { name: `Mardi`, value: '-', inline: false },
@@ -89,7 +90,13 @@ module.exports = {
         const deleteChoice = interaction.options.getBoolean('delete');
 
         if (!databases.config[interaction.guildId]) {
-            databases.config[interaction.guildId] = {}
+            databases.config[interaction.guildId] = {};
+        }
+        if(!databases.saison[interaction.guildId]){
+            databases.saison[interaction.guildId] = {};
+        }
+        if(!databases.all_anime[interaction.guildId]){
+            databases.all_anime[interaction.guildId] = {};
         }
 
         if (deleteChoice) {
@@ -118,12 +125,41 @@ module.exports = {
         }
         else if (typeChoice == 'saison') {
             databases.config[interaction.guildId].saison = channelChoice.id;
-            
-            const message = await client.channels.cache.get(databases.config[interaction.guildId].saison).send({ embeds: [embed_animes, embed_series], components: buttons });
-            
-            databases.config[interaction.guildId].saison_message = message.id;
-
             writeFile("data/config.json", JSON.stringify(databases.config), (err) => { if (err) { console.log(err) } });
+           
+            
+
+            url = 'https://www.livechart.me/api/v1/charts/nearest';         
+            const response = await axios.get(url);
+            const nom_saison = response.data.title;
+            databases.saison[interaction.guildId].nom_saison = nom_saison;
+            embed_animes.setTitle('Anime - '+ nom_saison);
+            const saison_actu = response.data.slug;
+
+            const message = await client.channels.cache.get(databases.config[interaction.guildId].saison).send({ embeds: [embed_animes, embed_series], components: buttons });
+            databases.saison[interaction.guildId].saison_message = message.id;
+
+            all_anime=[];
+            let has_more = true;
+            let offset=0;
+
+            while (has_more){
+                url = 'https://www.livechart.me/api/v1/charts/'+saison_actu+'/full_instances?sort=popularity&offset='+offset;
+                            
+                const response = await axios.get(url);
+                all_anime.push(response.data.items);
+
+                has_more = response.data.has_more;
+                offset+=50;
+            }
+
+            databases.all_anime[interaction.guildId].all_anime = all_anime;
+            
+
+                
+            writeFile("data/config.json", JSON.stringify(databases.config), (err) => { if (err) { console.log(err) } });
+            writeFile("data/saison.json", JSON.stringify(databases.saison), (err) => { if (err) { console.log(err) } });
+            writeFile("data/all_anime.json", JSON.stringify(databases.all_anime), (err) => { if (err) { console.log(err) } });
             return interaction.reply({ content: `Le channel ${channelChoice} a été configuré pour afficher les animes de la saison.`, ephemeral: true });
         }
     }

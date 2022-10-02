@@ -34,6 +34,7 @@ module.exports = {
             .setTitle(title)
             // .setThumbnail(client.user.displayAvatarURL())
             .setTimestamp()
+            .setColor('#905AB8')
             .setFooter({text: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
             .addFields(
                 { name: `Média`, value: media, inline: false },

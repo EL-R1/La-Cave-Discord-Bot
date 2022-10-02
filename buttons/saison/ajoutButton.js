@@ -25,7 +25,7 @@ const ajoutModal = new ModalBuilder()
 module.exports = {
     name: 'ajout-button',
     permissions: [],
-    runInteraction(client, interaction) {
-        interaction.showModal(ajoutModal);
+    runInteraction: async (client, interaction) => {
+        await interaction.showModal(ajoutModal);
     }
 }
