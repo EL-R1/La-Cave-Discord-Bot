@@ -9,19 +9,19 @@ module.exports = {
     async execute(client, interaction) {
         if (interaction.isCommand()) {
             const cmd = client.commands.get(interaction.commandName);
-            if (!cmd) return interaction.reply(`Cette commande n'existe pas !`);
+            if (!cmd) return interaction.reply({content: 'Cette commande n\'existe pas !', ephemeral: true});
             if (!interaction.memberPermissions.has(cmd.permissions)) return interaction.reply({ content: `Vous n'avez pas la/les permission(s) requise(s) (\'${cmd.permissions.join(', ')}\')`, ephemeral: true })
             cmd.runInteraction(client, interaction);
         }
         else if (interaction.isButton()) {
             const btn = client.buttons.get(interaction.customId);
-            if (!btn) return interaction.reply(`Ce bouton n'existe pas !`);
+            if (!btn) return interaction.reply({content: 'Ce bouton n\'existe pas !', ephemeral: true});
             if (!interaction.memberPermissions.has(btn.permissions)) return interaction.reply({ content: `Vous n'avez pas la/les permission(s) requise(s) (\'${btn.permissions.join(', ')}\')`, ephemeral: true })
             btn.runInteraction(client, interaction);
         }
         else if (interaction.isModalSubmit()) {
             const modal = client.modals.get(interaction.customId);
-            if(!modal) return interaction.reply(`Cette modale n'existe pas !`)
+            if(!modal) return interaction.reply({content: 'Cette modale n\'existe pas !', ephemeral: true})
             modal.runInteraction(client, interaction);
         }
     },

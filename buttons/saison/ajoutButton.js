@@ -9,16 +9,7 @@ const ajoutModal = new ModalBuilder()
                 .setCustomId('saison-title')
                 .setLabel('Titre')
                 .setStyle(TextInputStyle.Short)
-                .setPlaceholder(`My Hero Academia`)
-                .setRequired(true)
-        ),
-
-        new ActionRowBuilder().addComponents(
-            new TextInputBuilder()
-                .setCustomId('saison-season')
-                .setLabel('Saison')
-                .setStyle(TextInputStyle.Short)
-                .setPlaceholder(`6`)
+                .setPlaceholder(`My Hero Academia (pas besoin de préciser la saison)`)
                 .setRequired(true)
         )
     ]);
