@@ -3,10 +3,10 @@ const axios = require('axios');
 const { writeFile } = require('fs');
 
 module.exports = {
-    name: 'ajout-modal',
-    async runInteraction(client, interaction) {
+    name: 'ajout-modal-animes',
+    runInteraction: async (client, interaction) => {
         //Récupération texte du modal
-        const titre = interaction.fields.getTextInputValue('saison-title');
+        const titre = interaction.fields.getTextInputValue('title');
 
         //Déclaration variable
         let id=[];
@@ -40,8 +40,6 @@ module.exports = {
                 response = await axios.get(url);
             }
 
-            console.log(response.data.data[0]);
-
             if(response.data.data[0] != undefined) {
                 //Récupération nom
                 let nom_anime = response.data.data[0].title_english;
@@ -53,7 +51,6 @@ module.exports = {
                 //Récupération jour sortie
                 let time = response.data.data[0].broadcast.time;
                 let day = response.data.data[0].broadcast.day;
-                console.log(day, time);
 
                 jour_semaine.nom_en.forEach((en, index) =>{
                     console.log(day, en);
@@ -69,7 +66,6 @@ module.exports = {
                 const id_anime_recherche = response.data.data[0].mal_id;
 
                 //Détéction d'un anime en double
-                console.log(id);
                 id.forEach((id_present)=> {
                     if(id_present == id_anime_recherche){
                         doublon = true;
@@ -89,7 +85,6 @@ module.exports = {
             
                     //modification de la ligne (avec détéction du jour)
                     embed.fields.forEach((semaine, index)=>{
-                        console.log(nom_anime, id_anime_recherche, jour);
                         if (jour.toLowerCase() == semaine.name.toLowerCase()){
                             if (embed.fields[index].value == "-"){
                                 embed.fields[index].value = "\n- "+nom_anime;
@@ -121,3 +116,4 @@ module.exports = {
         
     }
 };
+

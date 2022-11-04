@@ -10,28 +10,21 @@ const buttons = [
     .addComponents(
         new ButtonBuilder()
             .setCustomId('ajout-button')
-            .setLabel('Ajouter un anime')
+            .setLabel('Ajouter')
             .setStyle(ButtonStyle.Success),
-
-        new ButtonBuilder()
-            .setCustomId('suppr-button')
-            .setLabel('Supprimer un anime')
-            .setStyle(ButtonStyle.Danger),
 
         new ButtonBuilder()
             .setCustomId('modif-button')
             .setLabel('Mettre à jour la saison')
             .setStyle(ButtonStyle.Secondary),
-        
-        new ButtonBuilder()
-            .setCustomId('ajout-serie-button')
-            .setLabel('Ajouter une série')
-            .setStyle(ButtonStyle.Success),
 
         new ButtonBuilder()
-            .setCustomId('suppr-serie-button')
-            .setLabel('Supprimer une série')
+            .setCustomId('suppr-button')
+            .setLabel('Supprimer')
             .setStyle(ButtonStyle.Danger),
+
+        
+        
     ),
 ]
 const embed_animes = new EmbedBuilder()
