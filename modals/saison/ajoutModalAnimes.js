@@ -39,7 +39,7 @@ module.exports = {
                 url = 'https://api.jikan.moe/v4/anime?order_by=popularity&sort=asc&type=tv&status=airing&q='+title;
                 response = await axios.get(url);
             }
-
+            
             if(response.data.data[0] != undefined) {
                 //Récupération nom
                 let nom_anime = response.data.data[0].title_english;
@@ -49,11 +49,16 @@ module.exports = {
                 nom_anime = nom_anime.replace("Season", "- Saison");
 
                 //Récupération jour sortie
-                let time = response.data.data[0].broadcast.time;
-                let day = response.data.data[0].broadcast.day;
+                let i=0;
+                let time;
+                let day;
+                while(response.data.data[i].broadcast.day == null){    
+                    i++;
+                }
+                time = response.data.data[i].broadcast.time;
+                day = response.data.data[i].broadcast.day;
 
                 jour_semaine.nom_en.forEach((en, index) =>{
-                    console.log(day, en);
                     if (day == en){
                         if(time < "07:00"){
                             index = ((index == 0) ? index = 6 : index -= 1 );
@@ -63,22 +68,18 @@ module.exports = {
                 });
 
                 //Récupération id
-                const id_anime_recherche = response.data.data[0].mal_id;
+                const id_anime_recherche = response.data.data[i].mal_id;
 
                 //Détéction d'un anime en double
+                console.log(id)
                 id.forEach((id_present)=> {
-                    if(id_present == id_anime_recherche){
+                    if(parseInt(id_present.value) == id_anime_recherche){
                         doublon = true;
                     }
                 });
 
                 if (!doublon){
-                    id.push(id_anime_recherche);
-
-                    //stockage de l'anime de l'embed pour éviter les doublons
-                    databases.saison[interaction.guildId].id = id;
-                    writeFile("data/saison.json", JSON.stringify(databases.saison), (err) => { if (err) { console.log(err) } }); 
-            
+                    
                     //récupération du message actuel
                     const message = await interaction.channel.messages.fetch(databases.saison[interaction.guildId].saison_message)
                     const embed = message.embeds[0];
@@ -94,10 +95,22 @@ module.exports = {
                             
                         }
                     })
-
+            
                     //modification du message
                     interaction.channel.messages.fetch(databases.saison[interaction.guildId].saison_message).then(msg => {msg.edit({ embeds: [embed, message.embeds[1]]})});
                     
+                    //ajout aux id acutels
+                    id.push({
+                        label: nom_anime,
+                        description: jour,
+                        value: id_anime_recherche.toString(),
+                        
+                    });
+
+                    //stockage de l'anime de l'embed pour éviter les doublons
+                    databases.saison[interaction.guildId].id = id;
+                    writeFile("data/saison.json", JSON.stringify(databases.saison), (err) => { if (err) { console.log(err) } }); 
+
                     //réponse
                     return interaction.reply({ content: 'Cet animé a été ajouté dans la liste', ephemeral: true });
                     
