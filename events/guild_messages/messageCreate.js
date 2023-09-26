@@ -112,7 +112,7 @@ module.exports = {
                 for (const type of types) {
                     channels[type] = message.guild.channels.cache.get(config[type]);
                     if (channels[type]) {
-                        threads[type] = channels[type].threads.fetch(config[`${type}-thread`]);
+                        threads[type] = await channels[type].threads.fetch(config[`${type}-thread`]);
                         if (threads[type]) {
                             if (threads[type].parentId === message.channelId || threads[type].id === message.channelId) {
                                 command = type;
