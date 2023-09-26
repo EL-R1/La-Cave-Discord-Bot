@@ -219,9 +219,15 @@ module.exports = {
 
         //Récupération final anime
         const animeData = await callAPI(titre);
-
+        
         if (!animeData || !animeData.idMal || !animeData.nextAiringEpisode) {
-            const title_error = animeData.title.english || animeData.title.romaji || animeData.title.userPreferred || animeData.title.native || titre;
+            let title_error;
+            if (animeData){
+                title_error = animeData.title.english || animeData.title.romaji || animeData.title.userPreferred || animeData.title.native || titre;
+            }else{
+                title_error = titre;
+            }
+            
 
             return interaction.reply({ content: `\`${title_error}\` ne sort pas encore, n'a pas été trouvé ou n'a pas encore de date de sortie`, ephemeral: true });
         }
