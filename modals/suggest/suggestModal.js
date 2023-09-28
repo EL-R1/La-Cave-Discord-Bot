@@ -93,14 +93,14 @@ module.exports = {
 
 
 
-        await client.channels.cache
-            .get(databases.config[interaction.guildId].suggest).threads
-            .fetch(config[`suggest-thread`])
-            .send({ embeds: [embed], components: buttons }).then(() =>
-                setTimeout(() => {
-                    client.channels.cache.get(databases.config[interaction.guildId].suggest).send({ embeds: [embed] });
-                }, 2000)
-            );;
+        const channel = client.channels.cache.get(databases.config[interaction.guildId].suggest);
+        const thread = await channel.threads.fetch(databases.config[interaction.guildId][`suggest-thread`]);
+
+        await thread.send({ embeds: [embed], components: buttons }).then(() =>
+            setTimeout(() => {
+                client.channels.cache.get(databases.config[interaction.guildId].suggest).send({ embeds: [embed] });
+            }, 2000)
+        );
 
 
 
