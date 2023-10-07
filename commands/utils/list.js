@@ -1,27 +1,46 @@
-const databases = { config: require("../../../data/config.json"), notifications: require("../../../data/notifications.json"), animes: require("../../../data/animes.json"), }
+const databases = { config: require("../../../data/config.json"), notifications: require("../../../data/notifications.json"), current_shows: require("../../../data/current_shows.json"), }
 
 module.exports = {
     name: 'list',
     description: 'Liste les animes auxquels tu es notifié !',
     permissions: [],
     runInteraction: async (client, interaction) => {
-        notifs = databases.notifications;
-        animes = databases.animes;
+        const notifications = databases.notifications;
+        const currentData = databases.current_shows;
+        const user_id = interaction.user.id;
 
-        const keys = notifs.filter(obj => {
-            const key = Object.keys(obj)[0];
-            return obj[key].includes(interaction.user.id);
-        }).map(obj => Object.keys(obj)[0]);
+        function getTitles(type, isAnime) {
+            const notifs = notifications[type] || [];
+            const data = currentData[type] || {};
+            
+            const keys = notifs
+                .filter(obj => Object.values(obj)[0].includes(user_id))
+                .map(obj => Object.keys(obj)[0]);
 
-        let title = "";
-        keys.forEach(key => {
-            title += "- ";
-            title += Object.values(animes).find(item => item.id === String(key)).title;
-            title += "\n";
-        });
-        if (title === "") title = "Pas encore de notifications pour toi :)";
+            if (keys.length === 0) {
+                return `Pas encore de notifications pour ${type} :)`;
+            }
 
-        return interaction.reply({ content: ` Voici ta liste : \n \`\`\`${title}\`\`\``, ephemeral: true });
+            let titles
+            if(isAnime){
+                titles = keys.map(key => Object.values(data).find(item => item.id === String(key)).title);
+            }else{
+                titles = keys.map(key => Object.values(data).find(item => item.title === String(key)).title);
+            }
+
+            if (titles.length === 0) {
+                return `Aucun titre trouvé pour les notifications de ${type} :(`;
+            }
+
+            return titles.map(title => `- ${title}`).join('\n');
+        }
+
+        const animeTitles = getTitles("animes", true);
+        const seriesTitles = getTitles("series", false);
+
+        const content = `Voici ta liste d'animes : \n\`\`\`${animeTitles}\`\`\`\nVoici ta liste de séries : \n\`\`\`${seriesTitles}\`\`\``;
+
+        return interaction.reply({ content, ephemeral: true });
 
     }
 }

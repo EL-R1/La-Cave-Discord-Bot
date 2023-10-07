@@ -1,5 +1,5 @@
 const { EmbedBuilder, ButtonStyle, ActionRowBuilder, ButtonBuilder } = require('discord.js');
-const databases = { config: require("../../../data/config.json"), notifications: require("../../../data/notifications.json"), animes: require("../../../data/animes.json") };
+const databases = { config: require("../../../data/config.json"), notifications: require("../../../data/notifications.json"), current_shows: require("../../../data/current_shows.json") };
 const axios = require('axios');
 const { writeFile, copyFileSync } = require('fs');
 
@@ -8,7 +8,7 @@ const buttons = [
     new ActionRowBuilder()
         .addComponents(
             new ButtonBuilder()
-                .setCustomId('animes-notification-button')
+                .setCustomId('notification-button')
                 .setLabel(' 🔔 Notifications')
                 .setStyle(ButtonStyle.Secondary),
         )
@@ -18,7 +18,7 @@ const buttonMod = [
     new ActionRowBuilder()
         .addComponents(
             new ButtonBuilder()
-                .setCustomId('animes-supprimer-button')
+                .setCustomId('supprimer-button')
                 .setLabel('Supprimer cet anime')
                 .setStyle(ButtonStyle.Danger)
         )
@@ -212,7 +212,6 @@ module.exports = {
         }
 
         const config = databases.config[interaction.guildId];
-        const notif_ = databases.notifications;
 
         //Récupération Modal
         const titre = interaction.fields.getTextInputValue('animes-title');
@@ -236,7 +235,7 @@ module.exports = {
         const { relations: { edges: edges }, id: ani_id, idMal: mal_id, format: format, title: { english: title_english, romaji: title_romaji }, coverImage: { extraLarge: URL_POSTER }, synonyms } = animeData;
 
         //Doublon ?
-        const exists = notif_.some(obj => Object.keys(obj)[0] === String(mal_id));
+        const exists = databases.notifications["animes"].some(obj => Object.keys(obj)[0] === String(mal_id));
         if (exists) {
             return interaction.reply({ content: `L'anime est un doublon !`, ephemeral: true });
         }
@@ -337,13 +336,14 @@ module.exports = {
         )
 
         const newObject = { [mal_id]: [] };
-        notif_.push(newObject);
+        databases.notifications["animes"].push(newObject);
 
         const channel_calendar = await interaction.guild.channels.cache.get(config["calendar"]);
         const calendar_msg = await channel_calendar.messages.fetch(config["calendar_msg_id"]);
 
         //récupération du message actuel
         const embed_calendar = await calendar_msg.embeds[0];
+        const embed_tmp = await calendar_msg.embeds[1];
 
         //Changement Saison - Titre
         const nom_saison = await getSeason();
@@ -385,12 +385,11 @@ module.exports = {
                 }
             })
             //notification
-            const configData = JSON.stringify(notif_)
+            const configData = JSON.stringify(databases.notifications, null, 4)
             writeFile("../data/notifications.json", configData, (err) => { if (err) { console.log(err) } });
 
             //modification du message
-            await channel_calendar.messages.fetch(calendar_msg.id).then(msg => { msg.edit({ embeds: [embed_calendar] }) });
-
+            await channel_calendar.messages.fetch(calendar_msg.id).then(msg => { msg.edit({ embeds: [embed_calendar, embed_tmp] }) });
         }
 
         const channel = client.channels.cache.get(config["animes"]);

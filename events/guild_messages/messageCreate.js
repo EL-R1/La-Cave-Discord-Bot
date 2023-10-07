@@ -1,7 +1,8 @@
-const databases = { suggest: require("../../../data/suggest.json"), report: require("../../../data/report.json"), animes: require("../../../data/animes.json"), config: require("../../../data/config.json"), notifications: require("../../../data/notifications.json") }
+const databases = { suggest: require("../../../data/suggest.json"), report: require("../../../data/report.json"), current_shows: require("../../../data/current_shows.json"), config: require("../../../data/config.json"), notifications: require("../../../data/notifications.json") }
 const yarss = { yarss: require("../../../data/yarss2/yarss2.json") }
 const { writeFile } = require('fs');
 const axios = require('axios');
+const { log } = require("console");
 
 module.exports = {
     name: 'messageCreate',
@@ -41,7 +42,7 @@ module.exports = {
             return jour_;
         }
 
-        function setYarss(path_title, path_season) {
+        function setYarss(path_title, path_season, command) {
             //Yarss2 config
             const key = Object.keys(yarss.yarss.subscriptions).length;
             const new_anime_sub = JSON.parse('{"active": true,"add_torrents_in_paused_state": "Default","auto_managed": "Default","custom_text_lines": "","download_location": "/ocean/animes/One Piece/S1/","email_notifications": {},"ignore_timestamp": false,"key": "0","label": "","last_match": "","max_connections": -2,"max_download_speed": -2,"max_upload_slots": -2,"max_upload_speed": -2,"move_completed": "/ocean/animes/One Piece/S1/","name": "One Piece","prioritize_first_last_pieces": "Default","regex_exclude": "(?i) FRENCH | MULTI |.mp4|AMZN|HULU|B-Global","regex_exclude_ignorecase": true,"regex_include": "(?i)One Piece.*1080p","regex_include_ignorecase": true,"rssfeed_key": "0","sequential_download": "Default"}');
@@ -53,8 +54,7 @@ module.exports = {
             path_title = path_title.replace(/[\[\]]/g, "");
             const replaced_title = path_title.replace(/[\/#+$~%"`:;*<>\[{}|^@!,? ]+/, " ").replace("  ", " ").trim();
 
-
-            const path = `/ocean/animes/${replaced_title}/S0${path_season}`;
+            const path = `/ocean/${command}/${replaced_title}/S0${path_season}`;
             const regex = replaced_title.split(" ").slice(0, 2).join(" ");
             const regex_words = regex.split(" ");
             const regex_results = regex_words.map(function (word) {
@@ -100,12 +100,13 @@ module.exports = {
             let jour;
             let path_title;
             let path_season;
+            let title;
 
             if (message.channelId === config["report"]) {
                 command = "report";
-            } else if (config["animes"] || config["suggest"]) {
+            } else if ((config["animes"] && config["series"]) || config["suggest"]) {
 
-                const types = ["suggest", "animes"];
+                const types = ["suggest", "animes", "series"];
                 const channels = {};
                 const threads = {};
 
@@ -118,11 +119,18 @@ module.exports = {
                                 command = type;
                                 channelId = threads[type].parentId;
 
-                                if (command === "animes") {
-                                    const notif = databases.notifications;
-                                    const dernier_objet = notif[notif.length - 1];
-                                    id = Object.keys(dernier_objet)[Object.keys(dernier_objet).length - 1];
-                                    jour = await getJour(id);
+                                if (command === "animes" || command === "series") {
+                                    channelId = config[command];
+                                    const dernier_objet = databases.notifications[command][databases.notifications[command].length - 1];
+
+                                    if (command === "animes") {
+                                        id = Object.keys(dernier_objet)[Object.keys(dernier_objet).length - 1];
+                                        jour = await getJour(id);
+                                    } else if (command === "series") {
+                                        title = Object.keys(dernier_objet)[Object.keys(dernier_objet).length - 1];
+                                        console.log("title : ", title)
+                                    }
+                                    
                                 }
                             }
                         }
@@ -137,7 +145,7 @@ module.exports = {
                     compare = (message.channelId !== channelId)
                     if (command === "suggest") {
                         id = channelId;
-                    } else if (command === "animes") {
+                    } else if (command === "animes" || command === "series") {
                         //récupération du message actuel
                         const embed_animes = await message.embeds[0];
 
@@ -162,26 +170,50 @@ module.exports = {
                 if (compare) {
                     message_value = message.id;
                 } else {
-                    const value = Object.values(databases[command]).find(o => o.id === id);
-                    const index = Object.values(databases[command]).indexOf(value);
-                    const key = Object.keys(databases[command])[index];
+                    let value;
+                    let key;
                     if (command === "suggest") {
+                        const value = Object.values(databases[command]).find(o => o.id === id);
+                        const index = Object.values(databases[command]).indexOf(value);
+                        key = Object.keys(databases[command])[index];
+
                         id = undefined;
+                    } else {
+                        if (command === "animes") {
+                            value = Object.values(databases.current_shows[command]).find(o => o.id === id);
+                        }else if(command === "series"){
+                            value = Object.values(databases.current_shows[command]).find(o => o.title === title);
+                        }
+                        const index = Object.values(databases.current_shows[command]).indexOf(value);
+                        key = Object.keys(databases.current_shows[command])[index];
                     }
                     message_value = key;
+
                 };
-                databases[command][message_value] = {
-                    author: command !== 'animes' ? client.users.cache.find(user => user.username == message.embeds[0].footer.text.split("#")[0]).id : undefined,
-                    title: message.embeds[0].title,
-                    media: command === 'report' ? message.embeds[0].fields[0].value : undefined,
-                    id: command !== 'report' ? id : undefined,
-                    message_id: command !== 'report' ? message.id : undefined,
-                    day: command === "animes" ? jour : undefined,
+                if ((command === "animes" || command === "series")) {
+                    databases.current_shows[command][message_value] = {
+                        author: undefined,
+                        title: message.embeds[0].title,
+                        media: undefined,
+                        id: command === 'animes' ? id : undefined,
+                        message_id: message.id,
+                        day: jour,
+                    }
+                } else {
+                    databases[command][message_value] = {
+                        author: client.users.cache.find(user => user.username == message.embeds[0].footer.text.split("#")[0]).id,
+                        title: message.embeds[0].title,
+                        media: command === 'report' ? message.embeds[0].fields[0].value : undefined,
+                        id: command !== 'report' ? id : undefined,
+                        message_id: command !== 'report' ? message.id : undefined,
+                        day: undefined,
+                    }
                 }
-                const configData = JSON.stringify(databases[command]);
-                writeFile(`../data/${command}.json`, configData, (err) => { if (err) { console.log(err) } });
-                if (command === "animes" && compare) {
-                    setYarss(path_title, path_season);
+
+                const configData = JSON.stringify(databases.current_shows, null, 4);
+                writeFile(`../data/current_shows.json`, configData, (err) => { if (err) { console.log(err) } });
+                if ((command === "animes" || command === "series") && compare) {
+                    setYarss(path_title, path_season, command);
                 }
             }
 
