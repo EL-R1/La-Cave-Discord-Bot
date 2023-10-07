@@ -29,17 +29,11 @@ module.exports = {
 
             const channel_calendar = await interaction.guild.channels.cache.get(config["calendar"]);
             const calendar_msg = await channel_calendar.messages.fetch(config["calendar_msg_id"]);
-            let embed_calendar;
-            let embed_tmp;
 
-            if (type === "animes") {
-                embed_calendar = await calendar_msg.embeds[0];
-                embed_tmp = await calendar_msg.embeds[1];
+            const embedIndex = (type === "animes") ? 0 : (type === "series") ? 1 : undefined;
 
-            } else if (type === "series") {
-                embed_calendar = await calendar_msg.embeds[1];
-                embed_tmp = await calendar_msg.embeds[0];
-            }
+            const embed_calendar = await calendar_msg.embeds[embedIndex];
+            const embed_tmp = await calendar_msg.embeds[1 - embedIndex];
 
             embed_calendar.fields.forEach((semaine, index) => {
                 if (data_suppr.day.toLowerCase() === semaine.name.toLowerCase()) {
@@ -76,13 +70,9 @@ module.exports = {
 
                 // Trouver l'index de l'élément dans la partie spécifiée (animes ou series)
                 let index;
-                console.log("datasuppr : ", data_suppr, "notifications : ", databases.notifications[type])
-                if (type === "animes") {
-                    index = databases.notifications[type].findIndex(obj => Object.keys(obj)[0] === data_suppr.id);
-                } else if (type === "series") {
-                    index = databases.notifications[type].findIndex(obj => Object.keys(obj)[0] === data_suppr.title);
+                if (type === "animes" || type === "series") {
+                    index = databases.notifications[type].findIndex(obj => Object.keys(obj)[0] === (type === "animes" ? data_suppr.id : data_suppr.title));
                 }
-
 
                 if (index !== -1) {
                     const rssJson = yarss.yarss;
@@ -97,9 +87,8 @@ module.exports = {
                             index_tab.push(rssJson.subscriptions[key].key)
                         }
                     }
-                    console.log(index, index_tab[index])
-                    var test = index_tab[index]
-                    delete rssJson.subscriptions[test];
+                    
+                    delete rssJson.subscriptions[index_tab[index]];
 
                     let i = 0;
                     for (const key in rssJson.subscriptions) {
@@ -118,7 +107,7 @@ module.exports = {
                     const str_start = JSON.stringify(JSON.parse('{"file": 8,"format": 1}'), null, 2);
                     const str_FINAL = str_start + conf
                     writeFile("../data/yarss2/yarss2.conf", str_FINAL, (err) => { if (err) { console.log(err) } });
-                    
+
                     databases.notifications[type].splice(index, 1);
                     const configData = JSON.stringify(databases.notifications, null, 4);
                     writeFile("../data/notifications.json", configData, (err) => { if (err) { console.log(err) } });

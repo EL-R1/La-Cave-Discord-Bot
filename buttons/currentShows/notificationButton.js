@@ -17,6 +17,7 @@ module.exports = {
         
         const value = Object.values(databases.current_shows[type]).find(o => o.message_id === interaction.message.id);
         let content = "";
+        
         const search_value = (type === "animes") ? value.id : (type === "series") ? value.title : undefined;
 
         const obj = databases.notifications[type].find(obj => Object.keys(obj)[0] === String(search_value));

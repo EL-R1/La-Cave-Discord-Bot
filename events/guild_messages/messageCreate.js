@@ -45,7 +45,7 @@ module.exports = {
         function setYarss(path_title, path_season, command) {
             //Yarss2 config
             const key = Object.keys(yarss.yarss.subscriptions).length;
-            const new_anime_sub = JSON.parse('{"active": true,"add_torrents_in_paused_state": "Default","auto_managed": "Default","custom_text_lines": "","download_location": "/ocean/animes/One Piece/S1/","email_notifications": {},"ignore_timestamp": false,"key": "0","label": "","last_match": "","max_connections": -2,"max_download_speed": -2,"max_upload_slots": -2,"max_upload_speed": -2,"move_completed": "/ocean/animes/One Piece/S1/","name": "One Piece","prioritize_first_last_pieces": "Default","regex_exclude": "(?i) FRENCH | MULTI |.mp4|AMZN|HULU|B-Global","regex_exclude_ignorecase": true,"regex_include": "(?i)One Piece.*1080p","regex_include_ignorecase": true,"rssfeed_key": "0","sequential_download": "Default"}');
+            const new_show_sub = JSON.parse('{"active": true,"add_torrents_in_paused_state": "Default","auto_managed": "Default","custom_text_lines": "","download_location": "/ocean/animes/One Piece/S1/","email_notifications": {},"ignore_timestamp": false,"key": "0","label": "","last_match": "","max_connections": -2,"max_download_speed": -2,"max_upload_slots": -2,"max_upload_speed": -2,"move_completed": "/ocean/animes/One Piece/S1/","name": "One Piece","prioritize_first_last_pieces": "Default","regex_exclude": "(?i) FRENCH | MULTI |.mp4|AMZN|HULU|B-Global","regex_exclude_ignorecase": true,"regex_include": "(?i)One Piece.*1080p","regex_include_ignorecase": true,"rssfeed_key": "0","sequential_download": "Default"}');
             const date = new Date(new Date(Date.now()).setDate(new Date(Date.now()).getDate() - 1)).toISOString().replace(/\.\d+/, "").replace(/Z$/, "+00:00");
             const date_now = new Date(Date.now()).toISOString().replace(/\.\d+/, "").replace(/Z$/, "+00:00");
 
@@ -62,12 +62,19 @@ module.exports = {
             });
             const result = regex_results.join("");
 
-            new_anime_sub.key = String(`${key}`);
-            new_anime_sub.last_match = String(`${date}`);
-            new_anime_sub.name = replaced_title;
-            new_anime_sub.download_location = path;
-            new_anime_sub.move_completed = path;
-            new_anime_sub.regex_include = `(?i)${result}(?=.*1080p)(?=.*S\\d{2}E\\d{2}).+`;
+            new_show_sub.key = String(`${key}`);
+            new_show_sub.last_match = String(`${date}`);
+            new_show_sub.name = replaced_title;
+            new_show_sub.download_location = path;
+            new_show_sub.move_completed = path;
+            new_show_sub.regex_include = `(?i)${result}(?=.*1080p)(?=.*S\\d{2}E\\d{2}).+`;
+
+            if (command === "animes"){
+                new_show_sub.regex_exclude = `(?i) FRENCH | MULTI |.mp4|AMZN|HULU|B-Global`
+            }else if (command === "series"){
+                new_show_sub.regex_exclude = `(?i) FRENCH |.mp4|AMZN|HULU|B-Global`
+            }
+            
 
             const rssJson = yarss.yarss;
 
@@ -77,7 +84,7 @@ module.exports = {
                 rssJson.subscriptions[key] = JSON.parse(JSON.stringify(sub));
             }
 
-            rssJson.subscriptions[key] = new_anime_sub;
+            rssJson.subscriptions[key] = new_show_sub;
 
             const configDataRss = JSON.stringify(rssJson, null, 4)
             writeFile("../data/yarss2/yarss2.json", configDataRss, (err) => { if (err) { console.log(err) } });
