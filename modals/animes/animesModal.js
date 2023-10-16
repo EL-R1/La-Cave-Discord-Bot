@@ -308,10 +308,8 @@ module.exports = {
                 { name: `path_title`, value: `${tmp_title}`, inline: false },
             );
 
-        let season;
-        if (saison) {
-            season = saison;
-        }
+        const season = saison;
+
         if (saison > 1) {
             embed.addFields({ name: `path_season`, value: `${saison}`, inline: false });
 
@@ -324,7 +322,7 @@ module.exports = {
             embed.addFields({ name: `\n`, value: `${saison}`, inline: false })
             embed.setTitle(tmp_title);
             final_title = tmp_title;
-        } else if (!saison) {
+        } else {
             embed.data.title = final_title;
             saison = 1;
             embed.addFields({ name: `path_season`, value: `${saison}`, inline: false })
