@@ -1,6 +1,7 @@
 const { EmbedBuilder, ButtonStyle, ActionRowBuilder, ButtonBuilder } = require('discord.js');
 const databases = { config: require("../../../data/config.json") }
-
+const dotenv = require('dotenv');
+dotenv.config({ path: '../.env'});
 
 const buttons = [
     new ActionRowBuilder()
@@ -69,22 +70,22 @@ module.exports = {
         switch (type) {
             case "Anime":
                 embed.setColor('#905AB8');
-                url = `https://www6.yggtorrent.lol/engine/search?name=${quotedWords}&description=&file=&uploader=&category=2145&sub_category=2179&do=search&order=desc&sort=size`;
+                url = `${process.env.BASE_URL_YGG}/engine/search?name=${quotedWords}&description=&file=&uploader=&category=2145&sub_category=2179&do=search&order=desc&sort=size`;
 
                 break;
             case "Film":
                 embed.setColor('#3B8AD3');
-                url = `https://www6.yggtorrent.lol/engine/search?name=${quotedWords}&description=&file=&uploader=&category=2145&sub_category=2183&do=search&order=desc&sort=size`;
+                url = `${process.env.BASE_URL_YGG}/engine/search?name=${quotedWords}&description=&file=&uploader=&category=2145&sub_category=2183&do=search&order=desc&sort=size`;
 
                 break;
             case "Série":
                 embed.setColor('#121325');
-                url = `https://www6.yggtorrent.lol/engine/search?name=${quotedWords}&description=&file=&uploader=&category=2145&sub_category=2184&do=search&order=desc&sort=size`;
+                url = `${process.env.BASE_URL_YGG}/engine/search?name=${quotedWords}&description=&file=&uploader=&category=2145&sub_category=2184&do=search&order=desc&sort=size`;
 
                 break;
             case "Livre Audio":
                 embed.setColor('#6778CC');
-                url = `https://www6.yggtorrent.lol/engine/search?name=${quotedWords}&description=&file=&uploader=&category=2140&sub_category=all&do=search`;
+                url = `${process.env.BASE_URL_YGG}/engine/search?name=${quotedWords}&description=&file=&uploader=&category=2140&sub_category=all&do=search`;
 
                 break;
         }

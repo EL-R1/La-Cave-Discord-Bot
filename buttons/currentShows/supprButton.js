@@ -2,6 +2,8 @@ const { PermissionsBitField } = require('discord.js');
 const databases = { current_shows: require("../../../data/current_shows.json"), notifications: require("../../../data/notifications.json"), config: require("../../../data/config.json"), }
 const yarss = { yarss: require("../../../data/yarss2/yarss2.json") }
 const { writeFile } = require('fs');
+const dotenv = require('dotenv');
+dotenv.config({ path: '../.env'});
 
 
 module.exports = {
@@ -99,6 +101,13 @@ module.exports = {
                         }
                         i++;
                     }
+
+                    rssJson.rssfeeds['4'].site = process.env.BASE_URL_YGG;
+                    rssJson.rssfeeds['4'].url = process.env.BASE_URL_YGG + "/rss?action=generate&type=subcat&id=2184&passkey=" + process.env.PASSKEY_YGG_R1;
+
+                    rssJson.rssfeeds['5'].site = process.env.BASE_URL_YGG;
+                    rssJson.rssfeeds['5'].url = process.env.BASE_URL_YGG + "/rss?action=generate&type=subcat&id=2179&passkey=" + process.env.PASSKEY_YGG_R1;
+                    
 
                     const configDataRss = JSON.stringify(rssJson, null, 4)
                     writeFile("../data/yarss2/yarss2.json", configDataRss, (err) => { if (err) { console.log(err) } });

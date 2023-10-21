@@ -3,6 +3,8 @@ const databases = { config: require("../../../data/config.json"), notifications:
 const yarss = { yarss: require("../../../data/yarss2/yarss2.json") }
 const { writeFile } = require('fs');
 const axios = require('axios');
+const dotenv = require('dotenv');
+dotenv.config({ path: '../.env'});
 
 const embed_animes = new EmbedBuilder()
     .setTitle("Anime - ")
@@ -144,6 +146,12 @@ module.exports = {
                             const configDataNotif = JSON.stringify(databases.notifications, null, 4)
                             const configCurrentData = JSON.stringify(databases.current_shows, null, 4)
 
+                            yarss.yarss.rssfeeds['4'].site = process.env.BASE_URL_YGG;
+                            yarss.yarss.rssfeeds['4'].url = process.env.BASE_URL_YGG + "/rss?action=generate&type=subcat&id=2184&passkey=" + process.env.PASSKEY_YGG_R1;
+
+                            yarss.yarss.rssfeeds['5'].site = process.env.BASE_URL_YGG;
+                            yarss.yarss.rssfeeds['5'].url = process.env.BASE_URL_YGG + "/rss?action=generate&type=subcat&id=2179&passkey=" + process.env.PASSKEY_YGG_R1;
+                            
                             yarss.yarss.subscriptions = {};
                             const configDataRss = JSON.stringify(yarss.yarss, null, 4)
 
