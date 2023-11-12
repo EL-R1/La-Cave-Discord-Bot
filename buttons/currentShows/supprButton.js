@@ -84,7 +84,7 @@ module.exports = {
                     const isSeries = type === 'series';
 
                     for (const key in rssJson.subscriptions) {
-                        const downloadLocation = rssJson.subscriptions[key].download_location;
+                        const downloadLocation = rssJson.subscriptions[key].move_completed;
                         if ((isAnimes && downloadLocation.includes('animes')) || (isSeries && downloadLocation.includes('series'))) {
                             index_tab.push(rssJson.subscriptions[key].key)
                         }
