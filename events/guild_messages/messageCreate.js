@@ -57,7 +57,8 @@ module.exports = {
             const replaced_title = path_title.replace(/[\/#+$~%"`:;*<>\[{}|^@!,? ]+/, " ").replace("  ", " ").trim();
 
             const path = `/ocean/${command}/${replaced_title}/S0${path_season}`;
-            const regex = replaced_title.split(" ").slice(0, 2).join(" ");
+            const sortedWords = replaced_title.split(" ").sort((a, b) => b.length - a.length);
+            const regex = sortedWords.split(" ").slice(0, 2).join(" ");
             const regex_words = regex.split(" ");
             const regex_results = regex_words.map(function (word) {
                 return "(?=.*" + word + ")";
